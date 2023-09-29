@@ -444,10 +444,175 @@ o
 NO SPACE IN THE PASSWORD (password is case sensitive).
 ```
 
+We try to lauch the script named **bomb**.
+
+```
+laurie@BornToSecHackMe:~$ ./bomb
+Welcome this is my little bomb !!!! You have 6 stages with
+only one life good luck !! Have a nice day!
+Hello World !
+
+BOOM!!!
+The bomb has blown up.
+```
+
+It asks for an entry in **stdin** but we do not know what to enter. Let's debug the program.
+
+- `gdb ./bomb`
+- `disass main`
+
+```
+    ...
+   0x08048a5b <+171>:	call   0x8048b20 <phase_1>
+   0x08048a60 <+176>:	call   0x804952c <phase_defused>
+   ...
+   0x08048a7e <+206>:	call   0x8048b48 <phase_2>
+   0x08048a83 <+211>:	call   0x804952c <phase_defused>
+   ..
+   0x08048aa1 <+241>:	call   0x8048b98 <phase_3>
+   0x08048aa6 <+246>:	call   0x804952c <phase_defused>
+   ...
+   0x08048ac4 <+276>:	call   0x8048ce0 <phase_4>
+   0x08048ac9 <+281>:	call   0x804952c <phase_defused>
+   ...
+   0x08048ae7 <+311>:	call   0x8048d2c <phase_5>
+   0x08048aec <+316>:	call   0x804952c <phase_defused>
+   ...
+   0x08048b0a <+346>:	call   0x8048d98 <phase_6>
+   0x08048b0f <+351>:	call   0x804952c <phase_defused>
+   ...
+```
+
+Ok there are **6** functions named **phase_NUMBER**. We need to solve all these phases to get the password.
+
+#### Phase 1
+
+```
+(gdb) disass phase_1
+Dump of assembler code for function phase_1:
+   0x08048b20 <+0>:	push   %ebp
+   0x08048b21 <+1>:	mov    %esp,%ebp
+   0x08048b23 <+3>:	sub    $0x8,%esp
+   0x08048b26 <+6>:	mov    0x8(%ebp),%eax
+   0x08048b29 <+9>:	add    $0xfffffff8,%esp
+   0x08048b2c <+12>:	push   $0x80497c0
+   0x08048b31 <+17>:	push   %eax
+   0x08048b32 <+18>:	call   0x8049030 <strings_not_equal>
+   0x08048b37 <+23>:	add    $0x10,%esp
+   0x08048b3a <+26>:	test   %eax,%eax
+   0x08048b3c <+28>:	je     0x8048b43 <phase_1+35>
+   0x08048b3e <+30>:	call   0x80494fc <explode_bomb>
+   0x08048b43 <+35>:	mov    %ebp,%esp
+   0x08048b45 <+37>:	pop    %ebp
+   0x08048b46 <+38>:	ret
+```
+
+The code compares two strings, what we enter and another string located at `0x80497c0` whose content is:
+
+```
+(gdb) x/s 0x80497c0
+0x80497c0:	 "Public speaking is very easy."
+```
+
+This is the phrase to solve phase 1.
+
+#### Phase 2
+
+```
+ump of assembler code for function phase_2:
+   0x08048b48 <+0>:	push   %ebp
+   0x08048b49 <+1>:	mov    %esp,%ebp
+   0x08048b4b <+3>:	sub    $0x20,%esp
+   0x08048b4e <+6>:	push   %esi
+   0x08048b4f <+7>:	push   %ebx
+   0x08048b50 <+8>:	mov    0x8(%ebp),%edx
+   0x08048b53 <+11>:	add    $0xfffffff8,%esp
+   0x08048b56 <+14>:	lea    -0x18(%ebp),%eax
+   0x08048b59 <+17>:	push   %eax
+   0x08048b5a <+18>:	push   %edx
+   0x08048b5b <+19>:	call   0x8048fd8 <read_six_numbers>
+   0x08048b60 <+24>:	add    $0x10,%esp
+   0x08048b63 <+27>:	cmpl   $0x1,-0x18(%ebp)
+   0x08048b67 <+31>:	je     0x8048b6e <phase_2+38>
+   0x08048b69 <+33>:	call   0x80494fc <explode_bomb>
+   0x08048b6e <+38>:	mov    $0x1,%ebx
+   0x08048b73 <+43>:	lea    -0x18(%ebp),%esi
+   0x08048b76 <+46>:	lea    0x1(%ebx),%eax
+   0x08048b79 <+49>:	imul   -0x4(%esi,%ebx,4),%eax
+   0x08048b7e <+54>:	cmp    %eax,(%esi,%ebx,4)
+   0x08048b81 <+57>:	je     0x8048b88 <phase_2+64>
+   0x08048b83 <+59>:	call   0x80494fc <explode_bomb>
+   0x08048b88 <+64>:	inc    %ebx
+   0x08048b89 <+65>:	cmp    $0x5,%ebx
+   0x08048b8c <+68>:	jle    0x8048b76 <phase_2+46>
+   0x08048b8e <+70>:	lea    -0x28(%ebp),%esp
+   0x08048b91 <+73>:	pop    %ebx
+   0x08048b92 <+74>:	pop    %esi
+   0x08048b93 <+75>:	mov    %ebp,%esp
+   0x08048b95 <+77>:	pop    %ebp
+   0x08048b96 <+78>:	ret
+End of assembler dump.
+```
+
+This function compares 6 numbers we enter in **stdin** and do some maths with them. The decompiled code by **Ghidra**
+looks like it:
+
+![](./images/laurie_bomb_phase2.png)
+
+We have to start with number **1** then, if each number we enter must be equal to:\
+(the index of the number + 1) * the value of the number
+
+So by starting with **1** we get:
+1. 1
+2. (1 + 1) * 1 = 2
+3. (2 + 1) * 2 = 6
+4. (3 + 1) * 6 = 24
+5. (4 + 1) * 24 = 120
+6. (5 + 1) * 120 = 720
+
+#### Phase 3
+
+![](./images/laurie_bomb_phase3_1.png)
+![](./images/laurie_bomb_phase3_2.png)
+
+Now the code get three inputs from **stdin**, a number, a char, a number. It compares the **first number** with multiples values,
+and then the **last number** with a value linked to the **first number**, finally the **char** must be equal to the character 
+assigned into `cvar2`.
+So we can choose whatever we want, here are all the possibilities:
+
+- `0 q 777`
+- `1 b 214`
+- `2 b 755`
+- `3 k 0xfb 251`
+- `4 o 160`
+- `5 t 458`
+- `6 v 780`
+- `7 b 524`
+
+#### Phase 4
 
 
+![](./images/laurie_bomb_phase4.png)
+
+There are 2 steps here.\
+First it checks if we give only one input to the program and if this input is below 1, if it's the
+case then the **bomb** explode.\
+Secondly, our **input** is passed as an arguments to the function **func4** and the results is compared to the value
+`0x37` so **55** and the bomb explode if it's note the case. Here is the function **func4** decompiled: 
 
 
+![](./images/laurie_bomb_phase4_func4.png)
 
+If our input is **less than 2** then the return value will be **1** which is clearly not **55**, if it's **greater**
+2 **recursive** call of the function are made, the first one takes our input and substracts it by 1 and the second one
+substracts it by 2, then the results is those results added together.
+
+We can  copy the code in **Ghidra** and create a **C** file with it, we need to add the **main** function and tada !
+
+```
+gcc ./scripts/phase4.c -o phase4
+./phase4
+The correcteur number is 9.
+```
 
 
