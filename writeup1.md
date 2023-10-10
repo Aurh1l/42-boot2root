@@ -570,6 +570,8 @@ So by starting with **1** we get:
 5. (4 + 1) * 24 = 120
 6. (5 + 1) * 120 = 720
 
+So the solution is `1 2 6 24 120 720`.
+
 #### Phase 3
 
 ![](./images/laurie_bomb_phase3_1.png)
@@ -612,7 +614,30 @@ We can  copy the code in **Ghidra** and create a **C** file with it, we need to 
 ```
 gcc ./scripts/phase4.c -o phase4
 ./phase4
-The correcteur number is 9.
+The correcteur number is `9`.
 ```
+
+#### Phase 5
+
+![](./images/laurie_bomb_phase5.png)\
+For this one I used **cutter** to decompile the code, which is more readable.
+
+There is a check on our input, its length must be equal to 6 otherwise the **bomb** explode.\
+Then a loop is executed, this loop takes each byte of our input, transform it with a correspondance string, **"isrveawhobpnutfg**
+and execute a **bitwise** with the value **0xf**, the final string must be equal to **"giants"**.
+
+Here again, we can copy the code and make a little script with it. The script is located at `./scripts/phase5.c`.
+When we execute it:
+
+```
+gcc ./scripts/phase5.c -o phase5 && ./phase5
+The solution to solve phase 5 is: opukmq
+```
+
+The solution  is `opukmq`.
+
+#### Phase 6
+
+![](./images/laurie_bomb_phase6.png)\
 
 
