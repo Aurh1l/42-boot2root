@@ -423,6 +423,8 @@ laurie@BornToSecHackMe:~$ id
 id=1003(laurie) gid=1003(laurie) groups=1003(laurie)1
 ```
 
+### Laurie
+
 The command `ls` in the home directory of **laurie** reveals a **README** with instructions to get the password for the
 user **thor**:
 
@@ -730,6 +732,82 @@ thor@BornToSecHackMe:~$
 ```
 
 We are **thor** !
+
+### Thor
+
+```
+thor@BornToSecHackMe:~$ ls
+README  turtle
+thor@BornToSecHackMe:~$ cat README
+Finish this challenge and use the result as password for 'zaz' user.
+```
+
+Again, we are challenged.
+
+```
+cat ./turtle
+
+....
+Tourne droite de 1 degrees
+Avance 1 spaces
+Tourne droite de 1 degrees
+Avance 1 spaces
+Tourne droite de 1 degrees
+Avance 1 spaces
+Tourne droite de 1 degrees
+Avance 1 spaces
+Tourne droite de 1 degrees
+Avance 1 spaces
+Tourne droite de 1 degrees
+Avance 1 spaces
+Tourne droite de 1 degrees
+Avance 1 spaces
+Tourne droite de 1 degrees
+Avance 50 spaces
+
+Avance 100 spaces
+Recule 200 spaces
+Avance 100 spaces
+Tourne droite de 90 degrees
+Avance 100 spaces
+Tourne droite de 90 degrees
+Avance 100 spaces
+Recule 200 spaces
+
+Can you digest the message? :)
+```
+
+The file **turtle** is composed of more thant 1460 instructions, they seem to construct a message.
+By parsing the instructions we can display this message, let's write a simple python script to do it.
+First download the file with the command `scp`.
+
+- `scp thor@192.168.56.8:./turtle . `
+- `python3 ./scripts/thor.py`
+
+It writes the word **'SLASH'** it may be the password but at the end, the message asks us if we can **digsest** it.
+Digest means encrypted password in cybersecurity, so we can try to hash the password with the command `md5sum`.
+
+```
+echo -n 'SLASH' | md5sum
+646da671ca01bb5d84dbb5fb2238dc8e -
+```
+
+Let's try to ssh as **zaz**.
+
+```
+ssh zaz@192.168.56.8
+        ____                _______    _____
+       |  _ \              |__   __|  / ____|
+       | |_) | ___  _ __ _ __ | | ___| (___   ___  ___
+       |  _ < / _ \| '__| '_ \| |/ _ \\___ \ / _ \/ __|
+       | |_) | (_) | |  | | | | | (_) |___) |  __/ (__
+       |____/ \___/|_|  |_| |_|_|\___/_____/ \___|\___|
+
+                       Good luck & Have fun
+zaz@192.168.56.8's password:
+zaz@BornToSecHackMe:~$
+```
+
 
 
 
