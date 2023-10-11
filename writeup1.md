@@ -591,6 +591,24 @@ So we can choose whatever we want, here are all the possibilities:
 - `6 v 780`
 - `7 b 524`
 
+But with the hint discovered earlier we can reduce the number of solutions to 3 since the 2nd character must me be a `b`:
+```
+HINT:
+P
+2
+b
+
+o
+4
+```
+
+So it's one of these 3 possibilites:
+
+- `1 b 214`
+- `2 b 755`
+- `7 b 524`
+
+
 #### Phase 4
 
 
@@ -631,7 +649,7 @@ When we execute it:
 
 ```
 gcc ./scripts/phase5.c -o phase5 && ./phase5
-The solution to solve phase 5 is: opukmq
+The solution to solve phase 5 is: opekmq
 ```
 
 The solution  is `opukmq`.
@@ -639,5 +657,83 @@ The solution  is `opukmq`.
 #### Phase 6
 
 ![](./images/laurie_bomb_phase6.png)\
+
+The code performs a sorting of global variables `nodeX` (node1,node2...node6) by using our input.
+Let's print these nodes.
+
+```
+pwndbg> printf "node1 = %d\nnode2 = %d\nnode 3 = %d\nnode4 = %d\nnode5 = %d\nnode6 = %d\n",
+(int)node1, (int)node2, (int)node3, (int)node4, (int)node5, (int)node6
+
+node1 = 253
+node2 = 725
+node 3 = 301
+node4 = 997
+node5 = 212
+node6 = 432
+pwndbg>
+```
+
+We can use the hint from the beginning to have an idea of the sorting type.
+
+```
+HINT:
+P
+2
+b
+
+o
+4
+```
+
+It starts with the `node4` which is the biggest node with its value of '997' so it may be a decreasing sort. It this is
+the case the solution may be: `4 2 6 3 1 5`.
+
+
+##### Defuse the bomb
+Let's test our solutions.
+
+```
+laurie@BornToSecHackMe:~$ ./bomb
+Welcome this is my little bomb !!!! You have 6 stages with
+only one life good luck !! Have a nice day!
+Public speaking is very easy.
+Phase 1 defused. How about the next one?
+1 2 6 24 120 720
+That's number 2.  Keep going!
+1 b 214
+Halfway there!
+9
+So you got that one.  Try this one.
+opukmq
+Good work!  On to the next...
+4 2 6 3 1 5
+Congratulations! You've defused the bomb!
+```
+
+Great ! Our solutions are working, we have to **concatenate** all theses in order to have the **ssh password for thor**.
+
+`Publicspeakingisveryeasy.126241207201b2149opekmq426135`
+
+```
+ssh thor@192.168.56.8
+        ____                _______    _____
+       |  _ \              |__   __|  / ____|
+       | |_) | ___  _ __ _ __ | | ___| (___   ___  ___
+       |  _ < / _ \| '__| '_ \| |/ _ \\___ \ / _ \/ __|
+       | |_) | (_) | |  | | | | | (_) |___) |  __/ (__
+       |____/ \___/|_|  |_| |_|_|\___/_____/ \___|\___|
+
+                       Good luck & Have fun
+thor@192.168.56.8's password:
+thor@BornToSecHackMe:~$
+```
+
+We are **thor** !
+
+
+
+
+
 
 

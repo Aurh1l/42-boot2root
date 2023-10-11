@@ -23,7 +23,7 @@ int main(void) {
 	int c;
 
 	while (index < 6) {
-		c = 102;
+		c = 98;
 		while (c < 123) {
 			if (phase_5(index, c)) {
 				solution[index] = (char)c;
