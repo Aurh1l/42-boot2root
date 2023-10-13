@@ -1,6 +1,6 @@
 # Writeup 2
 
-Go back to the reverse shell after the rce we found on phpmyadmin we are gonna use another method to get root.
+Go back to the reverse shell step ([writeup 1](./writeup1.md#post-exploitation)) after the rce we found on phpmyadmin we are gonna use another method to get root.
 
 ```
 uname -ar

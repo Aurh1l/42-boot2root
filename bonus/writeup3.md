@@ -1,6 +1,6 @@
 # Writeup 3
 
-Go back to the last step of [writeup 1](../writeup1.md) and ssh as **zaz**.\
+Go back to the last step of [writeup 1](../writeup1.md#zaz-2-libc) and ssh as **zaz**.\
 We used an exploit called **ret2libc** but we can use another method to exploit the binary, by injecting a **shellcode**
 which will be copy to a buffer on the**stack** and then we can inject the address of this buffer in order to make the
 **eip** read it.
