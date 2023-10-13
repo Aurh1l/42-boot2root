@@ -34,8 +34,6 @@ int main(void) {
 		index++;
 	}
 
-
-
 	dprintf(1, "The solution to solve phase 5 is: %s\n", solution);
 	return 0;
 }

@@ -22,10 +22,11 @@ int main(void) {
 
 	while (1) {
 		if (func4(i) == 55) {
-			dprintf(1, "The correcteur number is %d.\n", i);
+			dprintf(1, "The correct number is %d.\n", i);
 			return 0;
 		}
 		i++;
 	}
+
 	return 0;
 }
