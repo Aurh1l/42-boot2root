@@ -107,13 +107,13 @@ But it fails, let's try on the forum page. Success !
 On the profile page we can see a mail address *(laurie@borntosec.net). It might be interesting since we found a webmail.\
 ![](./images/lmezard_profile.png)
 
-Let's try on the webmail with the previous password. Success again !
+Let's try on the webmail with the previous password. Success again ! \
 ![](./images/lmezard_webmailpng.png)
 
 On the mail *DB ACCESS* we find credentials, **root/Fg-'kKXBj87E:aJ$** let's try it on the *phpmyadmin* page.\
 ![](./images/lmezard_webmail_db_access.png)
 
-Bingo again ! We have total control on the database since we are *root*.
+Bingo again ! We have total control on the database since we are *root*. \
 ![](./images/root_phpmyadmin.png)
 
 Nothing interesting in the database, but we could try something else. Since we are root we can execute som sql queries,
