@@ -219,7 +219,7 @@ root:ro7aJfd2QdGCc:0:0:pwned:/root:/bin/bash
 ...
 ```
 
-We have successfully pwned the machine ! Now let's login as **root**.
+We have successfully pwned the machine ! Now let's log in as **root**.
 ```
 www-data@BornToSecHackMe:/tmp$ su - root
 Password: 42
