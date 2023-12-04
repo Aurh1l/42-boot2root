@@ -784,7 +784,7 @@ First download the file with the command `scp`.
 - `scp thor@192.168.56.8:./turtle . `
 - `python3 ./scripts/thor.py`
 
-It writes the word **'SLASH'** it may be the password but at the end, the message asks us if we can **digsest** it.
+It writes the word **'SLASH'** it may be the password but at the end, the message asks us if we can **digest** it.
 Digest means encrypted password in cybersecurity, so we can try to hash the password with the command `md5sum`.
 
 ```
@@ -820,8 +820,8 @@ drwxrwx--x 1 www-data root   80 Oct 13  2015 ..
 drwxr-x--- 3 zaz      zaz   107 Oct  8  2015 mail
 ```
 
-We can see a folder named **mail** but more interesting is file called **exploit_me** and it has a setuid bit, which means
-the file is executed as user **root**, if we can exploit it we are **root**.
+We can see a folder named **mail** but more interesting is the file called **exploit_me**, it has a **setuid** bit, which means
+the file is executed as user **root**, if we can exploit it then we are **root**.
 
 ```
 zaz@BornToSecHackMe:~$ file exploit_me
@@ -922,7 +922,7 @@ Now use the second script to calculate the offset.
 [*] Exact match at offset 140
 ```
 
-Great, we know our offset. Now we are gonna do a `ret2libc` exploit. We will overwrite the `eip` with the address of the
+Great, we know our offset. Now we are going to do a `ret2libc` exploit. We will overwrite the `eip` with the address of the
 function `system` in order to spawn a `/bin/sh`.
 
 1. Get system's function address
